@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zimbabwe Home Price Prediction</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- <script src="static/app.js"></script> -->
+    <!-- <link rel="stylesheet" href="css"> -->
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='app.css') }}">
+
+</head>
+    <body>
+        <!-- Create the top navigation bar -->
+        <div class="topnav">
+            <a href="#">Home</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+
+        <!-- Create the main form -->
+        <div class="container">
+          <form class="form">
+            <!-- Form content goes here -->
+                <h2>Zimbabwe Home Price Prediction</h2>
+                <label for="area">Area (in sq ft)</label>
+                <input type="text" id="area" name="area" placeholder="Enter area (in sq ft)">
+                <label for="bhk">BHK(Bedroom, Hall, and Kitchen)</label>
+                <select id="bhk" name="bhk">
+                    <option value="1">1 BHK</option>
+                    <option value="2">2 BHK</option>
+                    <option value="3">3 BHK</option>
+                    <option value="4">4 BHK</option>
+                    <option value="5">5 BHK</option>
+                </select>
+                <label for="bath">Bathrooms</label>
+                    <select id="bath" name="bath">
+                        <option value="1">1 Bathroom</option>
+                        <option value="2">2 Bathrooms</option>
+                        <option value="3">3 Bathrooms</option>
+                        <option value="4">4 Bathrooms</option>
+                        <option value="5">5 Bathrooms</option>
+                    </select>
+                <div>
+                    <label for="location">Location</label>
+                        <select name="location" id="uiLocations">
+                            <option value="1" selected>Electronic City</option>
+                            <option value="2">Sarjapur</option>
+                            <option value="3">Whitefield</option>
+                        </select>
+                </div>
+                <input type="button" value="Predict Price" class="submit" id="predict_btn">
+                <!-- Display the result -->
+                    <div class="result">
+
+                        <p id="predicted_price"></p>
+                    </div>
+          </form>
+       </div>
+
+
+        
+    </body>
+    <script type="text/javascript">
+
+ 
+  function onLoadPage() {
+  console.log("document loaded");
+  var url = "/get_locations"; // URL to fetch locations
+  $.get(url, function(data, status) {
+    console.log("response for location names approved");
+    if (data) {
+      var locations = data.locations;
+      var uiLocation = document.getElementById("uiLocations");
+      $('#uiLocations').empty();
+      for (var i in locations) {
+        var opt = new Option(locations[i]);
+        $('#uiLocations').append(opt);
+      }
+    }
+  });
+}
+
+function getBathValue() {
+  var uiBathrooms = document.getElementsByName("bath");
+  for (var i in uiBathrooms) {
+    if (uiBathrooms[i].checked) {
+      return parseInt(uiBathrooms[i].value);
+    }
+  }
+  return -1; // Invalid Value
+}
+
+function getBHKValue() {
+  var uiBHK = document.getElementsByName("bhk");
+  for (var i in uiBHK) {
+    if (uiBHK[i].checked) {
+      return parseInt(uiBHK[i].value);
+    }
+  }
+  return -1; // Invalid Value
+}
+
+function onClickedEstimatePrice() {
+  console.log("Estimate price button clicked");
+  var sqft = document.getElementById("area").value;
+  var bhk = getBHKValue();
+  var bathrooms = getBathValue();
+  var location = document.getElementById("uiLocations").value;
+  var estPrice = document.getElementById("predicted_price");
+
+  var url = "/predict_home_price"; // URL to send prediction request
+
+  $.post(
+    url,
+    {
+      total_sqft: sqft,
+      location: location,
+      bhk: bhk,
+      bath: bathrooms
+    },
+    function(data, status) {
+      console.log("response for price prediction received");
+      if (data) {
+        var price = data.estimated_price;
+        estPrice.innerHTML = "Predicted Price:$USD " + price+"k";
+      }
+    }
+  );
+}
+
+// Wait for the DOM to load
+document.addEventListener("DOMContentLoaded", function() {
+  // Get the "Predict Price" button
+  var predictButton = document.getElementById("predict_btn");
+
+  // Add the click event listener
+  predictButton.addEventListener("click", onClickedEstimatePrice);
+
+  // Call the onLoadPage function to fetch locations
+  onLoadPage();
+});
+
+    </script>
+</html>
